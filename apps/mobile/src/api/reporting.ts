@@ -1,0 +1,73 @@
+/**
+ * api/reporting.ts
+ * ----------------------------------------------------------------------------
+ * Read-only reporting queries (M8). These power dashboards and the ledger feed.
+ *
+ * The Summary / MemberBalance / MyBalance shapes below are best-guesses from the
+ * spec — VERIFY them against your reporting.service responses on first run and
+ * adjust the interfaces (they're the most likely to differ from the docs).
+ */
+import { api } from './client';
+import type { Money } from '../lib/money';
+import type { LedgerEntry, LedgerEntryType } from './ledger';
+
+/** Group financial summary (officers). Shape — verify against reporting.service. */
+export interface GroupSummary {
+  fund_balance: Money;
+  total_contributions: Money;
+  total_loans_outstanding: Money;
+  interest_income: Money;
+  penalty_income: Money;
+  total_expenses: Money;
+  [key: string]: Money | string | number; // tolerate extra fields
+}
+
+/** Per-member balance row (officers). Shape — verify. */
+export interface MemberBalance {
+  membership_id: string;
+  member_name?: string;
+  heads?: number;
+  contributions: Money;
+  loan_outstanding: Money;
+  balance: Money;
+}
+
+/** The caller's own balance in this group. Shape — verify. */
+export interface MyBalance {
+  contributions: Money;
+  loan_outstanding: Money;
+  balance: Money;
+}
+
+export interface LedgerFilters extends Record<string, string | number | undefined> {
+  membership_id?: string; // officers only
+  entry_type?: LedgerEntryType;
+  limit?: number;
+}
+
+/** GET — group financial summary (treasurer/auditor/owner). */
+export function getSummary(groupId: string) {
+  return api.get<GroupSummary>(`/api/groups/${groupId}/reports/summary`);
+}
+
+/** GET — per-member balances across the group (treasurer/auditor/owner). */
+export async function getMemberBalances(groupId: string) {
+  const res = await api.get<{ balances: MemberBalance[] }>(
+    `/api/groups/${groupId}/reports/member-balances`,
+  );
+  return res.balances;
+}
+
+/** GET — ledger feed. Members see only their own entries; officers can filter. */
+export async function getLedger(groupId: string, filters: LedgerFilters = {}) {
+  const res = await api.get<{ entries: LedgerEntry[] }>(
+    `/api/groups/${groupId}/reports/ledger`,
+    filters,
+  );
+  return res.entries;
+}
+
+/** GET — the caller's own balance in this group (any role). */
+export function getMyBalance(groupId: string) {
+  return api.get<MyBalance>(`/api/groups/${groupId}/reports/my-balance`);
+}
