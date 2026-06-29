@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    font-family: Poppins_400Regular;
+  }
+  .font-medium {
+    font-family: Poppins_500Medium;
+  }
+  .font-semibold {
+    font-family: Poppins_600SemiBold;
+  }
+  .font-bold {
+    font-family: Poppins_700Bold;
+  }
+  .font-extrabold {
+    font-family: Poppins_800ExtraBold;
+  }
+}
