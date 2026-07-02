@@ -15,21 +15,23 @@ import { supabase } from '../lib/supabase';
 
 /** Resolve where the API lives. */
 function resolveBaseUrl(): string {
-  // Production / explicit override wins.
+  if (__DEV__) {
+    // A phone/emulator can't reach the dev machine's "localhost", so derive
+    // the machine's LAN IP from Expo's host (e.g. "192.168.1.10:8081").
+    const hostUri =
+      Constants.expoConfig?.hostUri ??
+      // @ts-expect-error legacy field on older Expo runtimes
+      Constants.manifest?.debuggerHost ??
+      '';
+    const host = hostUri.split(':')[0];
+    const port = process.env.EXPO_PUBLIC_API_PORT ?? '4000';
+
+    return host ? `http://${host}:${port}` : `http://localhost:${port}`;
+  }
+
+  // Production: explicit env var wins.
   const explicit = process.env.EXPO_PUBLIC_API_URL;
-  if (explicit) return explicit.replace(/\/+$/, '');
-
-  // Dev: a phone/emulator can't reach the dev machine's "localhost", so derive
-  // the machine's LAN IP from Expo's host (e.g. "192.168.1.10:8081").
-  const hostUri =
-    Constants.expoConfig?.hostUri ??
-    // @ts-expect-error legacy field on older Expo runtimes
-    Constants.manifest?.debuggerHost ??
-    '';
-  const host = hostUri.split(':')[0];
-  const port = process.env.EXPO_PUBLIC_API_PORT ?? '4000';
-
-  return host ? `http://${host}:${port}` : `http://localhost:${port}`;
+  return (explicit ?? '').replace(/\/+$/, '');
 }
 
 export const API_BASE_URL = resolveBaseUrl();

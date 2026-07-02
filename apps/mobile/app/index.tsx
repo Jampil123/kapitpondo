@@ -12,7 +12,7 @@ export default function Index() {
         supabase.auth.getSession(),
         new Promise(r => setTimeout(r, 1500)),
       ]);
-      router.replace(session ? ('/(member)/dashboard' as any) : '/(auth)/landing');
+      router.replace(session ? ('/(app)/groups' as any) : '/(auth)/landing');
     };
     boot();
   }, []);

@@ -10,6 +10,18 @@ import { Button } from '@/components/ui/Button';
 import { semantic } from '@/theme/colors';
 import { useAuth } from '@/context/AuthContext';
 
+const PREFIX = '+63 ';
+
+function formatPhone(raw: string): string {
+  if (!raw.startsWith('+63')) return PREFIX;
+  const digits = raw.replace(/^\+63\s?/, '').replace(/\D/g, '').slice(0, 10);
+  let body = '';
+  if (digits.length <= 3) body = digits;
+  else if (digits.length <= 6) body = `${digits.slice(0, 3)} ${digits.slice(3)}`;
+  else body = `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  return PREFIX + body;
+}
+
 export default function SignUp() {
   const router = useRouter();
   const { signUp } = useAuth();
@@ -18,7 +30,7 @@ export default function SignUp() {
   const [lastName, setLastName] = useState('');
   const [birthday, setBirthday] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(PREFIX);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -123,7 +135,7 @@ export default function SignUp() {
           placeholder="+63 900 000 0000"
           keyboardType="phone-pad"
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(t) => setPhone(formatPhone(t))}
           leading={<Phone size={18} color={semantic.textMuted} />}
         />
         <PasswordField

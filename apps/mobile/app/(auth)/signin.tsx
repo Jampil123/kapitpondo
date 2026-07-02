@@ -14,10 +14,22 @@ import { ScreenHeader } from '@/components/shared/ScreenHeader';
 import { semantic } from '@/theme/colors';
 import { useAuth } from '@/context/AuthContext';
 
+const PREFIX = '+63 ';
+
+function formatPhone(raw: string): string {
+  if (!raw.startsWith('+63')) return PREFIX;
+  const digits = raw.replace(/^\+63\s?/, '').replace(/\D/g, '').slice(0, 10);
+  let body = '';
+  if (digits.length <= 3) body = digits;
+  else if (digits.length <= 6) body = `${digits.slice(0, 3)} ${digits.slice(3)}`;
+  else body = `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  return PREFIX + body;
+}
+
 export default function SignIn() {
   const router = useRouter();
   const { signInWithPassword } = useAuth();
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(PREFIX);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,7 +40,7 @@ export default function SignIn() {
     setLoading(true);
     try {
       await signInWithPassword(phone, password);
-      // root _layout sees status === 'signedIn' and redirects to (app).
+      router.replace('/(app)/groups' as any);
     } catch (e) {
       Alert.alert('Sign in failed', (e as Error).message);
     } finally {
@@ -50,7 +62,7 @@ export default function SignIn() {
           placeholder="+63 900 000 0000"
           keyboardType="phone-pad"
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(t) => setPhone(formatPhone(t))}
           leading={<Phone size={18} color={semantic.textMuted} />}
         />
         <PasswordField
@@ -68,7 +80,6 @@ export default function SignIn() {
         </View>
 
         <Button label="Sign In" onPress={onSignIn} loading={loading} disabled={!canSubmit} />
-    c
       </ScrollView>
     </SafeAreaView>
   );

@@ -25,8 +25,9 @@ export interface Member {
 }
 
 /** GET /api/me/profile — the signed-in member + verification status. */
-export function getMyProfile() {
-  return api.get<Member>('/api/me/profile');
+export async function getMyProfile() {
+  const res = await api.get<{ member: Member }>('/api/me/profile');
+  return res.member;
 }
 
 export interface SubmitIdentityInput {
@@ -39,6 +40,7 @@ export interface SubmitIdentityInput {
  * POST /api/me/identity — submit or resubmit an ID document.
  * Only valid when status is `unverified` or `rejected`; sets status to `pending`.
  */
-export function submitIdentity(input: SubmitIdentityInput) {
-  return api.post<Member>('/api/me/identity', input);
+export async function submitIdentity(input: SubmitIdentityInput) {
+  const res = await api.post<{ message: string; member: Member }>('/api/me/identity', input);
+  return res.member;
 }

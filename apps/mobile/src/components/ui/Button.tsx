@@ -15,6 +15,7 @@ type ButtonProps = {
   loading?: boolean;
   leading?: ReactNode;
   style?: ViewStyle;
+  bordered?: boolean;
 };
 
 export function Button({
@@ -25,6 +26,7 @@ export function Button({
   loading,
   leading,
   style,
+  bordered = true,
 }: ButtonProps) {
   const [pressed, setPressed] = useState(false);
   const isGhost = variant === 'ghost';
@@ -50,7 +52,7 @@ export function Button({
           alignItems: 'center',
           justifyContent: 'center',
           gap: 8,
-          ...(isGhost && { borderWidth: 1.5, borderColor: semantic.borderStrong }),
+          ...(isGhost && bordered && { borderWidth: 1.5, borderColor: semantic.borderStrong }),
           opacity: off ? 0.45 : pressed ? 0.88 : 1,
         },
         !isGhost && !off ? shadowToken.button : undefined,

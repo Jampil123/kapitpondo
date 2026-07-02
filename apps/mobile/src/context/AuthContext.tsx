@@ -31,6 +31,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { toE164PH } from '../lib/phone';
 import { getMyProfile, type Member } from '../api/members';
+import { API_BASE_URL } from '../api/client';
 
 export type AuthStatus = 'loading' | 'signedOut' | 'signedIn';
 
@@ -74,10 +75,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setMember(null);
       return;
     }
+    console.log('[auth] logged in as', active.user.id, active.user.phone, '— API_BASE_URL =', API_BASE_URL);
     try {
-      setMember(await getMyProfile());
+      const profile = await getMyProfile();
+      console.log('[auth] loaded member profile', profile);
+      setMember(profile);
     } catch (e) {
-      console.warn('[auth] could not load member profile', e);
+      console.warn('[auth] could not load member profile', {
+        message: (e as Error).message,
+        status: (e as any).status,
+        code: (e as any).code,
+        details: (e as any).details,
+      });
       setMember(null);
     }
   }, []);

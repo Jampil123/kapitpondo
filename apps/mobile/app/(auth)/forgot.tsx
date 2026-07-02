@@ -69,11 +69,6 @@ export default function Forgot() {
         <View style={{ height: 6 }} />
         <Button label="Send Code" onPress={onSend} loading={loading} disabled={!phone.trim()} />
 
-        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: 18 }}>
-          <Text variant="body" color="secondary">Remembered your password?</Text>
-          <Text variant="label" color="brand" onPress={() => router.replace('/(auth)/signin')}>Log In</Text>
-        </View>
-
         <View style={{ flex: 1 }} />
         <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 7 }}>
           <Shield size={15} color={semantic.textMuted} />

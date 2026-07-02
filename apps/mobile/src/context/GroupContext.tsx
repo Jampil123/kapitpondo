@@ -1,26 +1,18 @@
 /**
  * context/GroupContext.tsx
  * ============================================================================
- * Holds the caller's groups (fetched once after sign-in) and answers "what is
- * my role in group X?" — the core of the per-group permission model.
+ * Holds the caller's memberships (fetched after sign-in) and resolves role +
+ * group by the active [groupId] route param. Updated for the nested MyGroup
+ * shape ({ role, status, groups }).
  *
- * Two ways screens consume it:
- *
- *   // The groups list / switcher
- *   const { groups, loading, refresh } = useGroups();
- *
- *   // Inside a [groupId] route — the active group + MY role in it
- *   const { group, role, isMyOfficerRole } = useActiveGroup();
- *   if (can(role, 'approveContribution')) { ...show approve button... }
- *
- * `useActiveGroup()` reads the `groupId` route param automatically, so any
- * screen under app/(app)/[groupId]/** gets the right group with no prop drilling.
+ *   const { groups, loading, refresh } = useGroups();          // the list
+ *   const { group, role, membership } = useActiveGroup();      // inside [groupId]
  * ============================================================================
  */
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from './AuthContext';
-import { listMyGroups, type MyGroup } from '../api/groups';
+import { listMyGroups, type MyGroup, type Group } from '../api/groups';
 import { isOfficer, type GroupRole } from '../constants/roles';
 
 interface GroupContextValue {
@@ -28,7 +20,6 @@ interface GroupContextValue {
   loading: boolean;
   error: Error | null;
   refresh: () => Promise<void>;
-  /** Look up one group (and your role in it) by id. */
   getById: (groupId: string | undefined) => MyGroup | null;
 }
 
@@ -56,14 +47,13 @@ export function GroupProvider({ children }: { children: ReactNode }) {
     }
   }, [status]);
 
-  // Load groups when the user signs in; clear them on sign-out.
   useEffect(() => {
     if (status === 'signedIn') refresh();
     else setGroups([]);
   }, [status, refresh]);
 
   const getById = useCallback(
-    (groupId: string | undefined) => groups.find((g) => g.id === groupId) ?? null,
+    (groupId: string | undefined) => groups.find((g) => g.groups.id === groupId) ?? null,
     [groups],
   );
 
@@ -74,7 +64,6 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** The groups list / switcher hook. */
 export function useGroups(): GroupContextValue {
   const ctx = useContext(GroupContext);
   if (!ctx) throw new Error('useGroups must be used within <GroupProvider>');
@@ -83,20 +72,23 @@ export function useGroups(): GroupContextValue {
 
 interface ActiveGroup {
   groupId: string | undefined;
-  group: MyGroup | null;
+  membership: MyGroup | null;
+  group: Group | null;
   role: GroupRole | null;
   isMyOfficerRole: boolean;
 }
 
-/**
- * The active group, derived from the `groupId` route param. Use inside any
- * screen under app/(app)/[groupId]/**. Returns nulls if there's no groupId in
- * the route or the user isn't a member of it.
- */
+/** Active group derived from the [groupId] route param. */
 export function useActiveGroup(): ActiveGroup {
   const { getById } = useGroups();
   const { groupId } = useLocalSearchParams<{ groupId?: string }>();
-  const group = getById(groupId);
-  const role = group?.role ?? null;
-  return { groupId, group, role, isMyOfficerRole: isOfficer(role) };
+  const membership = getById(groupId);
+  const role = membership?.role ?? null;
+  return {
+    groupId,
+    membership,
+    group: membership?.groups ?? null,
+    role,
+    isMyOfficerRole: isOfficer(role),
+  };
 }

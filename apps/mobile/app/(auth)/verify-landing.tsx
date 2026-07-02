@@ -92,8 +92,13 @@ export default function VerifyLanding() {
         </View>
 
         <Button label="Verify Now" onPress={() => router.push('/(auth)/identity')} leading={<ShieldCheck size={18} color="#fff" />} />
-        <View style={{ alignItems: 'center', marginTop: 14 }}>
-          {/* <Text variant="label" color="brand" onPress={() => router.replace('/(app)/groups')}>Do it later</Text> */}
+        <View style={{ alignItems: 'center', marginTop: 16 }}>
+          <Button
+            label="Do it later"
+            variant="ghost"
+            bordered={false}
+            onPress={() => router.replace('/(app)/groups' as any)}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

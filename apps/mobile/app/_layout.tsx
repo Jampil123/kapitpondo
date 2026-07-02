@@ -37,6 +37,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ animation: Platform.OS === "web" ? "none" : "default" }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(app)" options={{ headerShown: false }} />
         </Stack>
       </AuthProvider>
     </SafeAreaProvider>
